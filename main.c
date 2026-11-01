@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,28 +11,36 @@
 
 int handle_client(int client_socket)
 {
-    int recieved_bytes;
-    char buffer[128];
-    
-    memset(buffer, 0, sizeof(buffer));
+    int recieved_bytes = 0;
+    char buffer[1024];
+    const char *response = "HTTP/1.1 200 OK\r\n\r\nhello";
 
     while (true)
     {
-        recieved_bytes = recv(client_socket, buffer, sizeof(buffer), MSG_WAITALL);
+        memset(buffer, 0, sizeof(buffer));
+        recieved_bytes = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
         
-        if (recieved_bytes == -1)
-        {
+        if (recieved_bytes == -1) {
             printf("recv error\n");
             return -1;
         }
-
-        if (recieved_bytes == 0)
-        {
-            return 0;
+        if (recieved_bytes == 0) {
+            printf("connection closed\n");
+            break;
         }
 
         printf("%s", buffer);
+
+        if (recieved_bytes < sizeof(buffer) - 1) {
+            break;
+        }
+        printf("recieved %d bytes\n", recieved_bytes);
     }
+    printf("\n");
+
+    (void) send(client_socket, response, strlen(response), 0);
+    close(client_socket);
+    return 0;
 }
 
 int main()
