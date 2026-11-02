@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
@@ -8,37 +9,148 @@
 #include <netinet/tcp.h>
 
 #define PORT 1337
+#define KB *1024
+#define RECV_MAX_LENGTH 1 KB
+#define HTTP_VERSION 1.1
+
+enum {
+    GET,
+    POST,
+    PUT
+};
+
+typedef struct {
+    int method;
+    char *uri;
+} Request;
+
+typedef struct {
+    float version;
+    int status_code;
+    char *status_phrase;
+} Response;
+
+const char *get_http_response_string(Response *response)
+{
+    char buffer[8 KB];
+    const char *pointer;
+
+    memset(buffer, sizeof(buffer), 0);
+
+    snprintf(buffer, sizeof(buffer), "HTTP/%.1f %d %s\r\n\r\nhello nigga", response->version, response->status_code, response->status_phrase);
+    pointer = buffer;
+    return pointer;
+}
+
+void set_http_request_method(Request *request, char *method)
+{
+    if (strcmp(method, "GET") == 0) {
+        request->method = GET;
+    } else if (strcmp(method, "POST") == 0) {
+        request->method = POST;
+    } else if (strcmp(method, "PUT") == 0) {
+        request->method = PUT;
+    }
+}
+
+const char *get_http_request_method_string(Request *request)
+{
+    switch (request->method)
+    {
+        case GET:
+            return "GET";
+        case POST:
+            return "POST";
+        case PUT:
+            return "PUT";
+    }
+}
+
+void set_http_request_uri(Request *request, char *uri)
+{
+    int uri_length = strlen(uri);
+    request->uri = (char *) malloc(sizeof(char) * uri_length);
+}
+
+Request parse_http_request(char buffer[8 KB])
+{
+    Request request;
+
+    char *delimiters = " \r\n";
+    char *token = strtok(buffer, delimiters);
+
+    set_http_request_method(&request, token);
+    token = strtok(NULL, delimiters);
+    set_http_request_uri(&request, token);
+
+    return request;
+}
+
+const char *get_status_phrase(int status_code)
+{
+    switch (status_code)
+    {
+        case 200:
+            return "OK";
+    }
+}
+
+void initialize_http_response(Response *response)
+{
+    char *status_phrase = get_status_phrase(200);
+
+    response->version = HTTP_VERSION;
+    response->status_code = 200;
+    response->status_phrase = (char *) malloc(sizeof(char) * strlen(status_phrase));
+    strcpy(response->status_phrase, status_phrase);
+}
+
+void destroy_request(Request *request)
+{
+    free(request->uri);
+}
+
+void destroy_response(Response *response)
+{
+    free(response->status_phrase);
+}
 
 int handle_client(int client_socket)
 {
+    char buffer[8 KB];
     int recieved_bytes = 0;
-    char buffer[1024];
-    const char *response = "HTTP/1.1 200 OK\r\n\r\nhello";
+    int n = 0;
+    char *response_string;
+    Response response;
 
     while (true)
     {
-        memset(buffer, 0, sizeof(buffer));
-        recieved_bytes = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
-        
-        if (recieved_bytes == -1) {
+        n = recv(client_socket, buffer + recieved_bytes, RECV_MAX_LENGTH, 0);
+        recieved_bytes += n;
+
+        if (n == -1) {
             printf("recv error\n");
             return -1;
         }
-        if (recieved_bytes == 0) {
+        if (n == 0) {
             printf("connection closed\n");
             break;
         }
 
         printf("%s", buffer);
+        printf("recieved %d bytes\n", recieved_bytes);
 
-        if (recieved_bytes < sizeof(buffer) - 1) {
+        if (recieved_bytes < RECV_MAX_LENGTH) {
             break;
         }
-        printf("recieved %d bytes\n", recieved_bytes);
     }
     printf("\n");
 
-    (void) send(client_socket, response, strlen(response), 0);
+    Request request = parse_http_request(buffer);
+    initialize_http_response(&response);
+    response_string = get_http_response_string(&response);
+
+    (void) send(client_socket, response_string, strlen(response_string), 0);
     close(client_socket);
     return 0;
 }
@@ -58,7 +170,7 @@ int main()
         return 1;
     }
 
-    (void) setsockopt(tcp_socket, SOL_SOCKET, SO_REUSEADDR, (void *) reuse_address, sizeof(reuse_address)); 
+    (void) setsockopt(tcp_socket, SOL_SOCKET, SO_REUSEADDR, (void *) &reuse_address, sizeof(reuse_address)); 
 
     memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
@@ -71,7 +183,7 @@ int main()
         goto exit;
     }
 
-    if (client_socket = listen(tcp_socket, SOMAXCONN) == -1) {
+    if (listen(tcp_socket, SOMAXCONN) == -1) {
         printf("listen error\n");
         return_value = 1;
         goto exit;
