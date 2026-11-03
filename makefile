@@ -1,7 +1,11 @@
+# vim: noexpandtab
+
+SOURCES = $(wildcard src/*.c)
+
 P = main
-OBJECTS = 
-CFLAGS = -g -Wall
-LDLIBS = 
+CFLAGS = -g -Wall -Ihdr
 CC = c99
 
-$(P): $(OBJECTS)
+$(P): $(SOURCES)
+	$(CC) $(CFLAGS) -o $(P) $(SOURCES)
+

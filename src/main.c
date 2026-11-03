@@ -8,41 +8,15 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
-#define PORT 1337
-#define KB *1024
-#define RECV_MAX_LENGTH 1 KB
-#define HTTP_VERSION 1.1
-
-enum {
-    GET,
-    POST,
-    PUT
-};
+#include "response.h"
+#include "constants.h"
 
 typedef struct {
     int method;
     char *uri;
 } Request;
 
-typedef struct {
-    float version;
-    int status_code;
-    char *status_phrase;
-} Response;
-
-const char *get_http_response_string(Response *response)
-{
-    char buffer[8 KB];
-    const char *pointer;
-
-    memset(buffer, sizeof(buffer), 0);
-
-    snprintf(buffer, sizeof(buffer), "HTTP/%.1f %d %s\r\n\r\nhello nigga", response->version, response->status_code, response->status_phrase);
-    pointer = buffer;
-    return pointer;
-}
-
-void set_http_request_method(Request *request, char *method)
+void set_request_method(Request *request, char *method)
 {
     if (strcmp(method, "GET") == 0) {
         request->method = GET;
@@ -53,7 +27,7 @@ void set_http_request_method(Request *request, char *method)
     }
 }
 
-const char *get_http_request_method_string(Request *request)
+const char *get_request_method_string(Request *request)
 {
     switch (request->method)
     {
@@ -66,43 +40,24 @@ const char *get_http_request_method_string(Request *request)
     }
 }
 
-void set_http_request_uri(Request *request, char *uri)
+void set_request_uri(Request *request, char *uri)
 {
     int uri_length = strlen(uri);
     request->uri = (char *) malloc(sizeof(char) * uri_length);
 }
 
-Request parse_http_request(char buffer[8 KB])
+Request parse_request(char buffer[8 KB])
 {
     Request request;
 
     char *delimiters = " \r\n";
     char *token = strtok(buffer, delimiters);
 
-    set_http_request_method(&request, token);
+    set_request_method(&request, token);
     token = strtok(NULL, delimiters);
-    set_http_request_uri(&request, token);
+    set_request_uri(&request, token);
 
     return request;
-}
-
-const char *get_status_phrase(int status_code)
-{
-    switch (status_code)
-    {
-        case 200:
-            return "OK";
-    }
-}
-
-void initialize_http_response(Response *response)
-{
-    char *status_phrase = get_status_phrase(200);
-
-    response->version = HTTP_VERSION;
-    response->status_code = 200;
-    response->status_phrase = (char *) malloc(sizeof(char) * strlen(status_phrase));
-    strcpy(response->status_phrase, status_phrase);
 }
 
 void destroy_request(Request *request)
@@ -110,10 +65,6 @@ void destroy_request(Request *request)
     free(request->uri);
 }
 
-void destroy_response(Response *response)
-{
-    free(response->status_phrase);
-}
 
 int handle_client(int client_socket)
 {
@@ -122,7 +73,9 @@ int handle_client(int client_socket)
     int n = 0;
     char *response_string;
     Response response;
+    char file_path[64];
 
+    memset(file_path, 0, sizeof(file_path));
     while (true)
     {
         n = recv(client_socket, buffer + recieved_bytes, RECV_MAX_LENGTH, 0);
@@ -146,9 +99,12 @@ int handle_client(int client_socket)
     }
     printf("\n");
 
-    Request request = parse_http_request(buffer);
-    initialize_http_response(&response);
-    response_string = get_http_response_string(&response);
+    Request request = parse_request(buffer);
+    initialize_response(&response);
+    strcat(file_path, FILE_DIR);
+    strcat(file_path, "/index.html");
+    set_response_body(&response, file_path);
+    response_string = get_response_string(&response);
 
     (void) send(client_socket, response_string, strlen(response_string), 0);
     close(client_socket);
@@ -189,8 +145,8 @@ int main()
         goto exit;
     }
 
-    while (true)
-    {
+//    while (true)
+//    {
         printf("waiting for connection\n\n");
         client_socket = accept(tcp_socket, NULL, NULL);
 
@@ -199,7 +155,7 @@ int main()
             return_value = 1;
             goto exit;
         }
-    }
+//    }
     
 exit:
     close(tcp_socket);
