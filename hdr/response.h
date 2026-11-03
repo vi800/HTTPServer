@@ -6,7 +6,6 @@ typedef struct {
     int status_code;
     char *status_phrase;
     char *body;
-    int body_length;
 } Response;
 
 void initialize_response(Response *);

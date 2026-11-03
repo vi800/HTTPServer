@@ -8,62 +8,9 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
+#include "request.h"
 #include "response.h"
 #include "constants.h"
-
-typedef struct {
-    int method;
-    char *uri;
-} Request;
-
-void set_request_method(Request *request, char *method)
-{
-    if (strcmp(method, "GET") == 0) {
-        request->method = GET;
-    } else if (strcmp(method, "POST") == 0) {
-        request->method = POST;
-    } else if (strcmp(method, "PUT") == 0) {
-        request->method = PUT;
-    }
-}
-
-const char *get_request_method_string(Request *request)
-{
-    switch (request->method)
-    {
-        case GET:
-            return "GET";
-        case POST:
-            return "POST";
-        case PUT:
-            return "PUT";
-    }
-}
-
-void set_request_uri(Request *request, char *uri)
-{
-    int uri_length = strlen(uri);
-    request->uri = (char *) malloc(sizeof(char) * uri_length);
-}
-
-Request parse_request(char buffer[8 KB])
-{
-    Request request;
-
-    char *delimiters = " \r\n";
-    char *token = strtok(buffer, delimiters);
-
-    set_request_method(&request, token);
-    token = strtok(NULL, delimiters);
-    set_request_uri(&request, token);
-
-    return request;
-}
-
-void destroy_request(Request *request)
-{
-    free(request->uri);
-}
 
 
 int handle_client(int client_socket)
@@ -72,6 +19,7 @@ int handle_client(int client_socket)
     int recieved_bytes = 0;
     int n = 0;
     char *response_string;
+    Request request;
     Response response;
     char file_path[64];
 
@@ -99,7 +47,7 @@ int handle_client(int client_socket)
     }
     printf("\n");
 
-    Request request = parse_request(buffer);
+    parse_request(&request, buffer);
     initialize_response(&response);
     strcat(file_path, FILE_DIR);
     strcat(file_path, "/index.html");

@@ -47,11 +47,11 @@ void set_response_body(Response *response, const char *file_path)
     file_size = ftell(f) - file_size;
     fseek(f, 0, SEEK_SET);
 
-    response->body_length = file_size;
-    response->body = (char *) malloc(sizeof(char) * file_size);
+    response->body = (char *) malloc(sizeof(char) * (file_size + 1));
     if (fread(response->body, 1, file_size, f) != file_size) {
         printf("error reading file\n");
     }
+    response->body[file_size] = 0;
 
     fclose(f);
 }
