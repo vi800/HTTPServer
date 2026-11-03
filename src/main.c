@@ -1,3 +1,7 @@
+#include "request.h"
+#include "response.h"
+#include "constants.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,20 +12,15 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
-#include "request.h"
-#include "response.h"
-#include "constants.h"
-
-
 int handle_client(int client_socket)
 {
     char buffer[8 KB];
     int recieved_bytes = 0;
     int n = 0;
     char *response_string;
+    char file_path[64];
     Request request;
     Response response;
-    char file_path[64];
 
     memset(file_path, 0, sizeof(file_path));
     while (true)
