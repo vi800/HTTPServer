@@ -93,6 +93,7 @@ Socket accept_connection(Socket *sock)
 	return client_socket;
 }
 
+// IT WORKS ONLY FOR THIS SITUATION AND WILL FAIL IN A LOT OF CASES
 int recieve(Socket *sock, char *buffer)
 {
 	int recieved_bytes = 0;
