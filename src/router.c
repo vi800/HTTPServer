@@ -1,5 +1,6 @@
 #include "router.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -45,12 +46,17 @@ const char *get_route_path(Router *router, const char *uri)
             return route.path;
         }
     }
+
+    return ERROR_PATH;
 }
 
 void set_route(Route *route, const char *uri, const char *path)
 {
     route->uri = (char *) malloc(sizeof(char) * strlen(uri));
     route->path = (char *) malloc(sizeof(char) * strlen(path));
+
+    strcpy(route->uri, uri);
+    strcpy(route->path, path);
 }
 
 void destroy_route(Route *route)
@@ -67,3 +73,11 @@ void destroy_router(Router *router)
     router->size = 0;
     router->capacity = 0;
 }
+
+void print_routes(Router *router)
+{
+    for(int i = 0; i < router->size; ++i)
+        printf("%s -> %s\n", router->routes[i].uri, router->routes[i].path);
+    printf("\n");
+}
+
