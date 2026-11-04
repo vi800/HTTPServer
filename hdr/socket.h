@@ -27,6 +27,7 @@ void bind_socket(Socket *, int);
 void listen_for_connections(Socket *);
 Socket accept_connection(Socket *);
 void destroy_socket(Socket *);
+void clean_up_sockets();
 
 int recieve(Socket *sock, char *);
 int respond(Socket *sock, const char *);

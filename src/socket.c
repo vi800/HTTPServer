@@ -11,7 +11,7 @@
 
 #include <ws2tcpip.h>
 
-void create_socket(Socket *sock)
+void initialize_socket()
 {
 	WSADATA wsa_data;
 
@@ -19,6 +19,10 @@ void create_socket(Socket *sock)
 		printf("windows startup error\n");
 		exit(1);
 	}
+}
+
+void create_socket(Socket *sock)
+{
 	sock->descriptor = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (sock->descriptor == INVALID_SOCKET) {
@@ -27,9 +31,26 @@ void create_socket(Socket *sock)
 	}
 }
 
+Socket accept_connection(Socket *sock)
+{
+	Socket client_socket;
+	client_socket.descriptor = accept(sock->descriptor, NULL, NULL);
+
+	if (client_socket.descriptor == INVALID_SOCKET) {
+		printf("accept error\n");
+		printf("%d\n", WSAGetLastError());
+	}
+
+	return client_socket;
+}
+
 void destroy_socket(Socket *sock)
 {
 	closesocket(sock->descriptor);
+}
+
+void clean_up_sockets()
+{
 	WSACleanup();
 }
 
@@ -38,6 +59,9 @@ void destroy_socket(Socket *sock)
 
 #include <sys/socket.h>
 #include <unistd.h>
+
+void initialize_socket()
+{}
 
 void create_socket(Socket *sock)
 {
@@ -49,10 +73,26 @@ void create_socket(Socket *sock)
 	}
 }
 
+Socket accept_connection(Socket *sock)
+{
+	Socket client_socket;
+	client_socket.descriptor = accept(sock->descriptor, NULL, NULL);
+
+	if (client_socket.descriptor == -1) {
+		printf("accept error\n");
+		destroy_socket(sock);
+	}
+
+	return client_socket;
+}
+
 void destroy_socket(Socket *sock)
 {
 	close(sock->descriptor);
 }
+
+void clean_up_sockets()
+{}
 
 #endif
 // COMMON
@@ -82,15 +122,7 @@ void listen_for_connections(Socket *sock)
 	}
 }
 
-Socket accept_connection(Socket *sock)
-{
-	Socket client_socket;
-	client_socket.descriptor = accept(sock->descriptor, NULL, NULL);
-
-	return client_socket;
-}
-
-// IT WORKS ONLY FOR THIS SITUATION AND WILL FAIL IN A LOT OF CASES
+// IT WORKS ONLY FOR THIS SITUATION AND WILL FAIL IN A LOT OF CASES BECAUSE SIZE OF BUFFER IS NOT CONSIDERED
 int recieve(Socket *sock, char *buffer)
 {
 	int recieved_bytes = 0;
