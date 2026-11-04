@@ -12,6 +12,7 @@ typedef struct {
 
 #else
 
+#include <netinet/in.h>
 typedef struct {
 	int descriptor;
 	int port;

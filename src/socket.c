@@ -9,7 +9,6 @@
 #ifdef _WIN32
 // WINDOWS
 
-#include <winsock2.h>
 #include <ws2tcpip.h>
 
 void create_socket(Socket *sock)
@@ -38,8 +37,6 @@ void destroy_socket(Socket *sock)
 // POSIX
 
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 #include <unistd.h>
 
 void create_socket(Socket *sock)
