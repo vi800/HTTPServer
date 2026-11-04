@@ -23,7 +23,6 @@ int handle_client(Socket *client_socket)
     recieved_bytes = recieve(client_socket, buffer);
     parse_request(&request, buffer);
 
-    strcat(file_path, FILE_DIR);
     get_file_path(file_path, request.uri);
 
     initialize_response(&response);
