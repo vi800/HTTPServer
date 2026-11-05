@@ -9,14 +9,14 @@
 #include <string.h>
 #include <stdbool.h>
 
-int handle_client(Socket *client_socket)
+void *handle_client(void *client_socket)
 {
 	char buffer[8 KB];
     int recieved_bytes = 0;
     char *response_string;
     char file_path[64];
-    Request request;
-    Response response;
+    request_t request;
+    response_t response;
 
     memset(file_path, 0, sizeof(file_path));
 
@@ -31,13 +31,16 @@ int handle_client(Socket *client_socket)
 
     (void) respond(client_socket, response_string);
     destroy_socket(client_socket);
-    return 0;
+
+    return NULL;
 }
 
 int main()
 {
-    Socket tcp_socket;
-    Socket client_socket;
+    socket_t tcp_socket;
+    socket_t client_socket;
+
+    thread_pool_t thread_pool;
 
     initialize_socket();
 
@@ -51,8 +54,7 @@ int main()
         printf("waiting for connection...\n\n");
         client_socket = accept_connection(&tcp_socket);
 
-        if (handle_client(&client_socket) == -1)
-            printf("client socket error\n");
+        handle_client(&client_socket)
 
         destroy_socket(&client_socket);
     }

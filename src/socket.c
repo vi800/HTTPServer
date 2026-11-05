@@ -21,7 +21,7 @@ void initialize_socket()
 	}
 }
 
-void create_socket(Socket *sock)
+void create_socket(socket_t *sock)
 {
 	sock->descriptor = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -31,9 +31,9 @@ void create_socket(Socket *sock)
 	}
 }
 
-Socket accept_connection(Socket *sock)
+socket_t accept_connection(socket_t *sock)
 {
-	Socket client_socket;
+	socket_t client_socket;
 	client_socket.descriptor = accept(sock->descriptor, NULL, NULL);
 
 	if (client_socket.descriptor == INVALID_SOCKET) {
@@ -44,7 +44,7 @@ Socket accept_connection(Socket *sock)
 	return client_socket;
 }
 
-void destroy_socket(Socket *sock)
+void destroy_socket(socket_t *sock)
 {
 	closesocket(sock->descriptor);
 }
@@ -63,7 +63,7 @@ void clean_up_sockets()
 void initialize_socket()
 {}
 
-void create_socket(Socket *sock)
+void create_socket(socket_t *sock)
 {
 	sock->descriptor = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -73,9 +73,9 @@ void create_socket(Socket *sock)
 	}
 }
 
-Socket accept_connection(Socket *sock)
+socket_t accept_connection(socket_t *sock)
 {
-	Socket client_socket;
+	socket_t client_socket;
 	client_socket.descriptor = accept(sock->descriptor, NULL, NULL);
 
 	if (client_socket.descriptor == -1) {
@@ -86,7 +86,7 @@ Socket accept_connection(Socket *sock)
 	return client_socket;
 }
 
-void destroy_socket(Socket *sock)
+void destroy_socket(socket_t *sock)
 {
 	close(sock->descriptor);
 }
@@ -97,7 +97,7 @@ void clean_up_sockets()
 #endif
 // COMMON
 
-void bind_socket(Socket *sock, int port)
+void bind_socket(socket_t *sock, int port)
 {
 // FOR TESTING ONLY. REMOVE WHEN POSSIBLE
 bool reuse_address = true;
@@ -114,7 +114,7 @@ bool reuse_address = true;
 	}
 }
 
-void listen_for_connections(Socket *sock)
+void listen_for_connections(socket_t *sock)
 {
 	if (listen(sock->descriptor, SOMAXCONN) == -1) {
 		printf("listen error\n");
@@ -123,7 +123,7 @@ void listen_for_connections(Socket *sock)
 }
 
 // IT WORKS ONLY FOR THIS SITUATION AND WILL FAIL IN A LOT OF CASES BECAUSE SIZE OF BUFFER IS NOT CONSIDERED
-int recieve(Socket *sock, char *buffer)
+int recieve(socket_t *sock, char *buffer)
 {
 	int recieved_bytes = 0;
 	int n = 0;
@@ -154,7 +154,7 @@ int recieve(Socket *sock, char *buffer)
     return recieved_bytes;
 }
 
-int respond(Socket *sock, const char *string)
+int respond(socket_t *sock, const char *string)
 {
 	return send(sock->descriptor, string, strlen(string), 0);
 }
