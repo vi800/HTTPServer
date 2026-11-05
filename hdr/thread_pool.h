@@ -12,7 +12,8 @@ typedef struct task {
 
 typedef struct {
 	thrd_t threads[TOTAL_THREADS];
-	task_queue_t task_queue;
+	mtx_t mutex;
+	task_queue_t *task_queue;
 } thread_pool_t;
 
 #endif

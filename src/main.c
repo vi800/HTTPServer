@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "socket.h"
 #include "router.h"
+#include "thread_pool.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,13 +49,15 @@ int main()
     bind_socket(&tcp_socket, PORT);
     listen_for_connections(&tcp_socket);
 
+    initialize_thread_pool(&thread_pool);
+
     int delete_this = 3;
     while (delete_this--)
     {
         printf("waiting for connection...\n\n");
         client_socket = accept_connection(&tcp_socket);
 
-        handle_client(&client_socket)
+        handle_client(&client_socket);
 
         destroy_socket(&client_socket);
     }
