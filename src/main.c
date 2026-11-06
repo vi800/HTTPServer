@@ -9,10 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <threads.h>
 
-void *handle_client(void *client_socket)
+void handle_client(void *client_socket)
 {
+    printf("function called\n");
+
 	char buffer[8 KB];
     int recieved_bytes = 0;
     char *response_string;
@@ -33,14 +34,12 @@ void *handle_client(void *client_socket)
 
     (void) respond(client_socket, response_string);
     destroy_socket(client_socket);
-
-    return NULL;
 }
 
 int main()
 {
     socket_t tcp_socket;
-    socket_t client_socket;
+    socket_t *client_socket;
 
     thread_pool_t thread_pool;
 
@@ -52,15 +51,13 @@ int main()
 
     initialize_thread_pool(&thread_pool);
 
-    int delete_this = 3;
-    while (delete_this--)
+    while (true)
     {
         printf("waiting for connection...\n\n");
-        client_socket = accept_connection(&tcp_socket);
+        client_socket = (socket_t *) malloc(sizeof(socket_t));
+        *client_socket = accept_connection(&tcp_socket);
 
-        handle_client(&client_socket);
-
-        destroy_socket(&client_socket);
+        thread_pool_add_job(&thread_pool, handle_client, client_socket);
     }
     destroy_socket(&tcp_socket);
 
