@@ -6,11 +6,11 @@ typedef struct {
     int status_code;
     char *status_phrase;
     char *body;
-} Response;
+} response_t;
 
-void initialize_response(Response *);
-const char *get_response_string(Response *);
-void set_response_body(Response *, const char *);
-void destroy_response(Response *);
+void initialize_response(response_t *);
+const char *get_response_string(response_t *);
+void set_response_body(response_t *, const char *);
+void destroy_response(response_t *);
 
 #endif

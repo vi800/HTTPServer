@@ -8,7 +8,7 @@ typedef struct {
 	SOCKET descriptor;
 	int port;
 	struct sockaddr_in address;
-} Socket;
+} socket_t;
 
 #else
 
@@ -17,18 +17,19 @@ typedef struct {
 	int descriptor;
 	int port;
 	struct sockaddr_in address;
-} Socket;
+} socket_t;
 
 #endif
 
 void initialize_socket();
-void create_socket(Socket *);
-void bind_socket(Socket *, int);
-void listen_for_connections(Socket *);
-Socket accept_connection(Socket *);
-void destroy_socket(Socket *);
+void create_socket(socket_t *);
+void bind_socket(socket_t *, int);
+void listen_for_connections(socket_t *);
+socket_t accept_connection(socket_t *);
+void destroy_socket(socket_t *);
+void clean_up_sockets();
 
-int recieve(Socket *sock, char *);
-int respond(Socket *sock, const char *);
+int recieve(socket_t *sock, char *);
+int respond(socket_t *sock, const char *);
 
 #endif

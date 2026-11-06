@@ -16,7 +16,7 @@ const char *get_status_phrase(int status_code)
     }
 }
 
-void initialize_response(Response *response)
+void initialize_response(response_t *response)
 {
     char *status_phrase = get_status_phrase(200);
 
@@ -26,13 +26,13 @@ void initialize_response(Response *response)
     strcpy(response->status_phrase, status_phrase);
 }
 
-void destroy_response(Response *response)
+void destroy_response(response_t *response)
 {
     free(response->status_phrase);
     free(response->body);
 }
 
-void set_response_body(Response *response, const char *file_path)
+void set_response_body(response_t *response, const char *file_path)
 {
     int file_size;
     FILE *f = fopen(file_path, "rb");
@@ -56,7 +56,7 @@ void set_response_body(Response *response, const char *file_path)
     fclose(f);
 }
 
-const char *get_response_string(Response *response)
+const char *get_response_string(response_t *response)
 {
     char buffer[8 KB];
     const char *pointer;
@@ -67,4 +67,3 @@ const char *get_response_string(Response *response)
     pointer = buffer;
     return pointer;
 }
-

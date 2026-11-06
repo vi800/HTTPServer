@@ -4,11 +4,11 @@
 typedef struct {
     char *method;
     char *uri;
-} Request;
+} request_t;
 
-void set_request_method(Request *, const char *);
-void set_request_uri(Request *, const char *);
-void parse_request(Request *, char[]);
-void destroy_request(Request *);
+void set_request_method(request_t *, const char *);
+void set_request_uri(request_t *, const char *);
+void parse_request(request_t *, char[]);
+void destroy_request(request_t *);
 
 #endif
