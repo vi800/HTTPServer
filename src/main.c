@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <threads.h>
 
 int handle_client(Socket *client_socket)
 {
@@ -18,6 +19,8 @@ int handle_client(Socket *client_socket)
     Request request;
     Response response;
     Router router;
+
+    thrd_t thread = thrd_create();
 
     initialize_router(&router);
     add_route(&router, "/", "index.html");
